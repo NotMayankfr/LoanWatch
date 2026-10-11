@@ -1,0 +1,7 @@
+# LoanWatch daily ingestion cron schedule
+# Runs at 06:35 IST Monday-Friday (5 minutes after the 06:30 IST vendor SLA cutoff)
+SHELL=/bin/bash
+TZ=Asia/Kolkata
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+
+35 6 * * 1-5 cd $HOME/LoanWatch && ./scripts/ingest.sh --batch-date "$(date +\%Y\%m\%d)" >> $HOME/LoanWatch/logs/cron.log 2>&1

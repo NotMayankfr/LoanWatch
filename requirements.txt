@@ -1,0 +1,8 @@
+pyspark==3.5.3
+setuptools==75.1.0
+pandas==2.2.3
+pyarrow==18.0.0
+psycopg2-binary==2.9.10
+XlsxWriter==3.2.0
+matplotlib==3.9.2
+pytest==8.3.3

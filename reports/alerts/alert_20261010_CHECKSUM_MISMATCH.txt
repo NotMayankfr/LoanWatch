@@ -1,0 +1,11 @@
+========================================================================
+LOANWATCH PIPELINE INCIDENT ALERT
+========================================================================
+Timestamp (IST) : 2026-10-11 23:06:58 IST
+Batch Date      : 20261010
+Vendor          : FirstMark_Servicing
+Incident Type   : CHECKSUM_MISMATCH
+Exit Code       : 11
+Details         : SHA-256 verification failed for loan_tape_20261010.csv. Expected 6620f31c1b2cbf2f4e6fc389c4fdb3198d698f4896c477287df843dc297157b2, got ed76a04bb805dda7090b29102e47841c798711aa6e1f17828048fd53accb5138 (rows=1250 vs manifest=10000).
+Action Required : Consult docs/RUNBOOK.md for L1/L2 remediation steps.
+========================================================================

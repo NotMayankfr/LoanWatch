@@ -1,0 +1,11 @@
+========================================================================
+LOANWATCH PIPELINE INCIDENT ALERT
+========================================================================
+Timestamp (IST) : 2026-10-11 23:07:58 IST
+Batch Date      : 20261015
+Vendor          : FirstMark_Servicing
+Incident Type   : MISSING_FEED
+Exit Code       : 10
+Details         : Expected loan_tape_20261015.csv and loan_tape_20261015.manifest in data/inbound/, but file was absent.
+Action Required : Consult docs/RUNBOOK.md for L1/L2 remediation steps.
+========================================================================

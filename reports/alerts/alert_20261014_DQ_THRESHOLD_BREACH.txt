@@ -1,0 +1,11 @@
+========================================================================
+LOANWATCH PIPELINE INCIDENT ALERT
+========================================================================
+Timestamp (IST) : 2026-10-11 23:07:58 IST
+Batch Date      : 20261014
+Vendor          : FirstMark_Servicing
+Incident Type   : DQ_THRESHOLD_BREACH
+Exit Code       : 20
+Details         : Batch 20261014 rejected: 951/10000 rows failed DQ (9.51% > 5.0% threshold).
+Action Required : Consult docs/RUNBOOK.md for L1/L2 remediation steps.
+========================================================================

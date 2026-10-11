@@ -1,0 +1,11 @@
+========================================================================
+LOANWATCH PIPELINE INCIDENT ALERT
+========================================================================
+Timestamp (IST) : 2026-10-11 23:06:58 IST
+Batch Date      : 20261012
+Vendor          : FirstMark_Servicing
+Incident Type   : HEADER_DRIFT
+Exit Code       : 13
+Details         : Header mismatch on loan_tape_20261012.csv. Expected 30 canonical columns, got 30 columns.
+Action Required : Consult docs/RUNBOOK.md for L1/L2 remediation steps.
+========================================================================

@@ -1,0 +1,13 @@
+batch_date,rule_id,dimension,rule_name,records_checked,records_failed,pass_pct,threshold_pct,rule_status,sla_status,arrival_time_ist
+20261005,DQ_CMP_001,Completeness,Mandatory Contract Keys Non-Null,452141,2,99.9996,99.90,PASS,ON_TIME,06:12
+20261005,DQ_CMP_002,Completeness,Underwriting Attributes Populated,452141,94,99.9792,99.50,PASS,ON_TIME,06:12
+20261005,DQ_UNQ_001,Uniqueness,Numeric & Unique Loan ID (First-Row Retention),452141,2,99.9996,99.95,PASS,ON_TIME,06:12
+20261005,DQ_VAL_001,Validity,Credit Grade & Sub-Grade Domain,452141,2,99.9996,99.90,PASS,ON_TIME,06:12
+20261005,DQ_VAL_002,Validity,US State Jurisdiction Code,452141,2,99.9996,99.90,PASS,ON_TIME,06:12
+20261005,DQ_VAL_003,Validity,"Rate, DTI [0,100] & Non-Negative Income Bounds",452141,212,99.9531,99.00,PASS,ON_TIME,06:12
+20261005,DQ_VAL_004,Validity,Loan Amount & Term Bounds,452141,2,99.9996,99.90,PASS,ON_TIME,06:12
+20261005,DQ_VAL_005,Validity,Issue Date Format & Vintage Range,452141,2,99.9996,99.90,PASS,ON_TIME,06:12
+20261005,DQ_VAL_006,Validity,FICO Score Range Bounds,452141,2,99.9996,99.90,PASS,ON_TIME,06:12
+20261005,DQ_CNS_001,Consistency,Funded Amount <= Approved Loan Amount,452141,2,99.9996,99.95,PASS,ON_TIME,06:12
+20261005,DQ_CNS_002,Consistency,"UPB <= Funded, FICO High >= Low & Zero UPB on Terminal Status",452141,2,99.9996,99.90,PASS,ON_TIME,06:12
+20261005,DQ_TIM_001,Timeliness,Payment Chronology & SLA Timeliness,452141,0,100.0000,99.90,PASS,ON_TIME,06:12

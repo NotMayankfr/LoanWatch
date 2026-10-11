@@ -1,0 +1,1 @@
+id,loan_amnt,funded_amnt,funded_amnt_inv,term,int_rate,installment,grade,sub_grade,emp_length,home_ownership,annual_inc,verification_status,issue_d,loan_status,purpose,addr_state,dti,delinq_2yrs,fico_range_low,fico_range_high,revol_bal,revol_util,total_acc,out_prncp,total_pymnt,total_rec_prncp,total_rec_late_fee,recoveries,last_pymnt_d

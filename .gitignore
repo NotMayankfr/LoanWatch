@@ -1,0 +1,39 @@
+# Raw multi-GB Kaggle archives and working data directories
+Dataset/
+data/raw/*.csv
+data/raw/*.gz
+data/inbound/*.csv
+data/inbound/*.manifest
+data/processing/*
+data/archive/raw/*.csv
+data/archive/raw/*.manifest
+data/archive/clean_parquet/
+data/archive/sas_extract_*.csv
+data/rejects/file_level/*.csv
+data/rejects/file_level/*.manifest
+data/rejects/row_level/*.csv
+
+# Keep directory structure and small audit/scorecard artifacts tracked
+!data/inbound/.gitkeep
+!data/processing/.gitkeep
+!data/archive/.gitkeep
+!data/rejects/.gitkeep
+!data/archive/scorecards/*.csv
+!data/archive/vendor_sla_history.csv
+
+# Python / PySpark / OS artifacts
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+metastore_db/
+derby.log
+spark-warehouse/
+logs/
+PROJECT_PLAN.md
+*.zip
+/tmp/
+*.lock
+*.log
+.DS_Store
+Thumbs.db

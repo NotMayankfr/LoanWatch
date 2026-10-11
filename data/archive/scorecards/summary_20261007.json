@@ -1,0 +1,10 @@
+{
+  "batch_date": "20261007",
+  "sla_status": "ON_TIME",
+  "arrival_time_ist": "06:21",
+  "total_rows": 452141,
+  "clean_rows": 451924,
+  "rejected_rows": 217,
+  "reject_pct": "0.05",
+  "max_reject_pct": "5.00"
+}
