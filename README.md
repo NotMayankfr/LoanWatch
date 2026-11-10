@@ -90,8 +90,14 @@ LoanWatch/
 │   ├── sas_recon_output_2017.csv       # Output control table produced by running the program in SAS Studio (manual)
 │   └── reconciliation_notes.md         # Tri-system reconciliation report (PySpark vs PostgreSQL vs SAS)
 ├── reports/
-│   ├── LoanWatch_MIS_Pack_20261009.xlsx
+│   ├── LoanWatch_MIS_Pack_20261009.xlsx # Formatted 5-tab daily Excel MIS workbook (xlsxwriter)
 │   ├── LoanWatch.pbix                  # Built manually in Power BI Desktop from the Postgres views
+│   ├── powerbi/                        # Power BI vector reporting suite & DAX architecture
+│   │   ├── README.md                   # Star schema data model, DirectQuery guide & visual catalogue
+│   │   ├── measures.dax                # Enterprise DAX measure library (30+ portfolio, risk & DQ metrics)
+│   │   ├── 01_executive_portfolio_risk.svg        # Page 1: Portfolio Exposure, UPB, WAC & State Concentration
+│   │   ├── 02_vintage_delinquency_chargeoff.svg   # Page 2: Cumulative Charge-Off Curves, NCL & Maturation Matrix
+│   │   └── 03_dq_governance_vendor_sla.svg        # Page 3: Inbound SLA Timeline, Integrity Ledger & DQ Scorecard
 │   ├── alerts/                         # Incident alert summaries for failed/missing feeds
 │   └── figures/                        # Matplotlib portfolio, vintage loss, and vendor SLA charts
 ├── tests/
@@ -150,7 +156,73 @@ Charts are generated directly from the PostgreSQL analytical views via `scripts/
 
 ---
 
-## 5. Tri-System Reconciliation (2017 Cohort: PySpark vs. PostgreSQL vs. SAS)
+## 5. Enterprise Power BI Reporting Suite
+
+The production reporting layer includes an enterprise **Power BI Reporting Suite** configured for hybrid **DirectQuery and Import Mode** over PostgreSQL (`localhost:5432/loanwatch`). In addition to the binary template (`reports/LoanWatch.pbix`), complete high-resolution vector SVG exports of all three dashboard pages are committed under [`reports/powerbi/`](reports/powerbi/) alongside the production [DAX measure library](reports/powerbi/measures.dax) and [data modeling documentation](reports/powerbi/README.md).
+
+### Page 1: Executive Portfolio & Credit Risk Overview
+A high-level command center for the Chief Credit Officer and ALCO Committee, tracking cumulative originated exposure ($33.92B), active outstanding principal balance (UPB: $9.46B / 27.9%), weighted average coupon (WAC: 13.38%), portfolio 30+ DPD delinquency rate (0.95%), grade-level risk migration, and geographic concentration (led by CA, TX, NY, FL, IL).
+
+![Power BI Page 1 - Executive Portfolio and Credit Risk](reports/powerbi/01_executive_portfolio_risk.svg)
+
+---
+
+### Page 2: Vintage Maturation, Delinquency & Charge-Off Analytics
+Built for Credit Risk Analytics and CECL/IFRS 9 reserve modeling teams, featuring cumulative net charge-off maturation curves by origination vintage (2014-2017), severe delinquency proxy distributions by rating grade ($2.1\%$ for Grade A up to $37.8\%$ for Grade G), and a monthly Net Credit Loss waterfall ($4.42B gross charge-off minus $371.4M recoveries yielding $4.05B net loss).
+
+![Power BI Page 2 - Vintage Maturation, Delinquency and Charge-Off](reports/powerbi/02_vintage_delinquency_chargeoff.svg)
+
+---
+
+### Page 3: Data Quality Governance & Vendor Feed SLA Monitoring
+An audit-ready dashboard for the Chief Data Office (CDO) and Vendor Operations Oversight, tracking daily vendor feed arrivals against the **06:30 IST SLA cutoff**, SHA-256 and physical line-count integrity ledgers, multi-dimensional PySpark DQ rule pass rates (overall **99.81%** pass rate across 2,260,701 records), and deterministic root-cause categorisation for the 4,311 isolated quarantine rows.
+
+![Power BI Page 3 - Data Quality Governance and Vendor Feed SLA](reports/powerbi/03_dq_governance_vendor_sla.svg)
+
+---
+
+### Production DAX Architecture ([`reports/powerbi/measures.dax`](reports/powerbi/measures.dax))
+
+The report suite is powered by 30+ enterprise DAX measures adhering to banking portfolio management standards:
+
+```dax
+// 1. Weighted Average Coupon (WAC)
+[Weighted Average Coupon (WAC)] = 
+DIVIDE(
+    SUMX('loans_clean', 'loans_clean'[int_rate] * 'loans_clean'[funded_amnt]),
+    [Total Funded Exposure],
+    0
+)
+
+// 2. Severe Delinquency Proxy Rate (Default + Charged Off)
+[Severe Delinquency Loans Count] = 
+CALCULATE(
+    COUNTROWS('loans_clean'),
+    'loans_clean'[loan_status] IN {"Default", "Charged Off"}
+)
+
+[Severe Delinquency Proxy Rate %] = 
+DIVIDE([Severe Delinquency Loans Count], [Total Loans Clean], 0)
+
+// 3. Net Credit Loss ($B)
+[Net Credit Loss ($B)] = 
+DIVIDE([Gross Charge-Off Principal] - [Total Recoveries], 1000000000, 0)
+
+// 4. Dynamic Data Quality Health Status
+[DQ Health Status] = 
+SWITCH(
+    TRUE(),
+    [DQ Pass Rate %] >= 0.995, "HEALTHY (Pass >= 99.5%)",
+    [DQ Pass Rate %] >= 0.980, "WARNING (Pass 98.0%-99.5%)",
+    "CRITICAL BREACH (< 98.0%)"
+)
+```
+
+For complete DirectQuery configuration, star schema table relationships, and refresh automation, see the [Power BI Documentation](reports/powerbi/README.md).
+
+---
+
+## 6. Tri-System Reconciliation (2017 Cohort: PySpark vs. PostgreSQL vs. SAS)
 
 On the 2017 origination cohort (`442,214` clean loans exported to `data/archive/sas_extract_2017.csv`), control totals are reconciled across PySpark, PostgreSQL (`vw_reconciliation_2017_by_grade`), and SAS (`sas/loanwatch_recon.sas` -> `sas/sas_recon_output_2017.csv`). Full details are in [`sas/reconciliation_notes.md`](sas/reconciliation_notes.md).
 
@@ -166,7 +238,7 @@ On the 2017 origination cohort (`442,214` clean loans exported to `data/archive/
 
 ---
 
-## 6. Quickstart & Execution (WSL Ubuntu)
+## 7. Quickstart & Execution (WSL Ubuntu)
 
 ```bash
 # 1. Clone into ~/LoanWatch inside WSL and configure environment

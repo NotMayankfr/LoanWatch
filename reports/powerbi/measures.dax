@@ -1,0 +1,173 @@
+// ==============================================================================
+// LoanWatch Enterprise Power BI DAX Measure Library
+// DirectQuery / Import Mode over PostgreSQL 16 (loanwatch database)
+// Banking / Consumer Credit Risk & Portfolio Information Management Standards
+// ==============================================================================
+
+// ------------------------------------------------------------------------------
+// 1. PORTFOLIO VOLUME & EXPOSURE MEASURES
+// ------------------------------------------------------------------------------
+
+[Total Loans Clean] = 
+    COUNTROWS('loans_clean')
+
+[Total Loans Formatted] = 
+    FORMAT([Total Loans Clean], "#,##0")
+
+[Total Funded Exposure] = 
+    SUM('loans_clean'[funded_amnt])
+
+[Total Funded Exposure ($B)] = 
+    DIVIDE([Total Funded Exposure], 1000000000, 0)
+
+[Current Active UPB] = 
+    SUM('loans_clean'[out_prncp])
+
+[Current Active UPB ($B)] = 
+    DIVIDE([Current Active UPB], 1000000000, 0)
+
+[UPB Share of Funded %] = 
+    DIVIDE([Current Active UPB], [Total Funded Exposure], 0)
+
+[Principal Amortized ($B)] = 
+    DIVIDE([Total Funded Exposure] - [Current Active UPB], 1000000000, 0)
+
+[Average Loan Size] = 
+    DIVIDE([Total Funded Exposure], [Total Loans Clean], 0)
+
+// ------------------------------------------------------------------------------
+// 2. COUPON, FICO & CREDIT RISK MEASURES
+// ------------------------------------------------------------------------------
+
+[Weighted Average Coupon (WAC)] = 
+    DIVIDE(
+        SUMX('loans_clean', 'loans_clean'[int_rate] * 'loans_clean'[funded_amnt]),
+        [Total Funded Exposure],
+        0
+    )
+
+[Average Borrower FICO] = 
+    AVERAGEX('loans_clean', ('loans_clean'[fico_range_low] + 'loans_clean'[fico_range_high]) / 2.0)
+
+[Average Debt-to-Income (DTI)] = 
+    AVERAGE('loans_clean'[dti])
+
+// ------------------------------------------------------------------------------
+// 3. DELINQUENCY & DEFAULT MEASURES (BASE-FLAG DERIVATIONS)
+// ------------------------------------------------------------------------------
+
+[Delinquent 30+ Loans Count] = 
+    CALCULATE(
+        COUNTROWS('loans_clean'),
+        'loans_clean'[loan_status] IN {"Late (31-120 days)", "Default"}
+    )
+
+[30+ DPD Loan Rate %] = 
+    DIVIDE([Delinquent 30+ Loans Count], [Total Loans Clean], 0)
+
+[30+ DPD UPB Exposure] = 
+    CALCULATE(
+        SUM('loans_clean'[out_prncp]),
+        'loans_clean'[loan_status] IN {"Late (31-120 days)", "Default"}
+    )
+
+[30+ DPD UPB Rate %] = 
+    DIVIDE([30+ DPD UPB Exposure], [Current Active UPB], 0)
+
+[Severe Delinquency Loans Count] = 
+    CALCULATE(
+        COUNTROWS('loans_clean'),
+        'loans_clean'[loan_status] IN {"Default", "Charged Off"}
+    )
+
+[Severe Delinquency Proxy Rate %] = 
+    DIVIDE([Severe Delinquency Loans Count], [Total Loans Clean], 0)
+
+[MoM 30+ DPD Change (bps)] = 
+    VAR CurrentRate = [30+ DPD Loan Rate %]
+    VAR PrevDate = PREVIOUSMONTH('Dim_Date'[Date])
+    VAR PriorRate = CALCULATE([30+ DPD Loan Rate %], PrevDate)
+    RETURN
+        IF(ISBLANK(PriorRate), BLANK(), (CurrentRate - PriorRate) * 10000)
+
+// ------------------------------------------------------------------------------
+// 4. CHARGE-OFF & NET CREDIT LOSS (NCL) MEASURES
+// ------------------------------------------------------------------------------
+
+[Gross Charge-Off Principal] = 
+    CALCULATE(
+        SUMX(
+            'loans_clean',
+            MAX('loans_clean'[funded_amnt] - COALESCE('loans_clean'[total_rec_prncp], 0), 0)
+        ),
+        'loans_clean'[loan_status] = "Charged Off"
+    )
+
+[Gross Charge-Off ($B)] = 
+    DIVIDE([Gross Charge-Off Principal], 1000000000, 0)
+
+[Post-CO Recoveries] = 
+    CALCULATE(
+        SUM('loans_clean'[recoveries]),
+        'loans_clean'[loan_status] = "Charged Off"
+    )
+
+[Post-CO Recoveries ($M)] = 
+    DIVIDE([Post-CO Recoveries], 1000000, 0)
+
+[Recovery Rate %] = 
+    DIVIDE([Post-CO Recoveries], [Gross Charge-Off Principal], 0)
+
+[Net Credit Loss (NCL)] = 
+    [Gross Charge-Off Principal] - [Post-CO Recoveries]
+
+[Net Credit Loss ($B)] = 
+    DIVIDE([Net Credit Loss (NCL)], 1000000000, 0)
+
+[Net Credit Loss Rate %] = 
+    DIVIDE([Net Credit Loss (NCL)], [Total Funded Exposure], 0)
+
+[3M Rolling Net Credit Loss Rate %] = 
+    VAR DatePeriod = DATESINPERIOD('Dim_Date'[Date], MAX('Dim_Date'[Date]), -3, MONTH)
+    RETURN
+        CALCULATE([Net Credit Loss Rate %], DatePeriod)
+
+// ------------------------------------------------------------------------------
+// 5. DATA QUALITY & VENDOR SLA GOVERNANCE MEASURES
+// ------------------------------------------------------------------------------
+
+[Total Ingested Records Checked] = 
+    SUM('vendor_feed_sla_log'[actual_rows])
+
+[Total Clean Records Loaded] = 
+    SUM('vendor_feed_sla_log'[clean_rows])
+
+[Total Quarantined Records] = 
+    SUM('vendor_feed_sla_log'[rejected_rows])
+
+[Overall DQ Pass Rate %] = 
+    DIVIDE([Total Clean Records Loaded], [Total Ingested Records Checked], 1.0)
+
+[DQ Rejection Rate %] = 
+    DIVIDE([Total Quarantined Records], [Total Ingested Records Checked], 0)
+
+[Total Batches Ingested] = 
+    COUNTROWS('vendor_feed_sla_log')
+
+[On-Time Batches Count] = 
+    CALCULATE(
+        COUNTROWS('vendor_feed_sla_log'),
+        'vendor_feed_sla_log'[sla_status] = "ON_TIME"
+    )
+
+[Late Batches Count] = 
+    CALCULATE(
+        COUNTROWS('vendor_feed_sla_log'),
+        'vendor_feed_sla_log'[sla_status] = "LATE"
+    )
+
+[Vendor SLA Compliance Rate %] = 
+    DIVIDE([On-Time Batches Count], [Total Batches Ingested], 0)
+
+[Rule Compliance Pass Rate %] = 
+    AVERAGE('dq_scorecard_history'[pass_pct])
