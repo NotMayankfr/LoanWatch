@@ -54,7 +54,6 @@ flowchart TD
 
 ## 2. Repository Structure
 
-> **Note**: Project root is `~/LoanWatch` inside WSL, not `/mnt/c`.
 
 ```text
 LoanWatch/
